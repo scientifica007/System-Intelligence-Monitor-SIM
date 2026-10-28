@@ -63,7 +63,7 @@ sim export SESSION_ID --format json --output ./sim-session.json
 
 ## آخر فحص عتاد ميداني — FT-002 (28/10/2026)
 
-أُجري `sim doctor --json` على حاسوب الاختبار الحقيقي وجرى تقاطعه مع `free -h` و`lscpu`: Intel Core i3 M370 (نواتان ماديتان، 4 منطقية)، Linux kernel 7.0.0-38-generic، ذاكرة متاحة للنظام 8,110,960,640 بايت (7.554 GiB)، وGPU Intel PCI `8086:0046`. أُكد توفر CPU/RAM/Swap/processes/disk/network وجرد GPU ومستشعرات حرارة، لكن قراءة الطاقة والرسوميات لكل عملية وSMART غير منفذة. كشف البطارية غير متاح في بيئة الاختبار. **لم يُحسم اختلاف RAM المرئية (~8 GB) عن وصف سابق لـ16 GB مثبتة** ويحتاج فحص وحدات SMBIOS. كما أن `system.distribution` في `doctor` يستخدم `platform.platform()`، فلا يُعد كشفًا صريحًا لتوزيعة Ubuntu. [تفاصيل الاختبار](docs/FIELD_TEST_002.md).
+أُجري `sim doctor --json` على حاسوب الاختبار الحقيقي وجرى تقاطعه مع `free -h` و`lscpu`: Intel Core i3 M370 (نواتان ماديتان، 4 منطقية)، Linux kernel 7.0.0-38-generic، ذاكرة متاحة للنظام 8,110,960,640 بايت (7.554 GiB)، وGPU Intel PCI `8086:0046`. أُكد توفر CPU/RAM/Swap/processes/disk/network وجرد GPU ومستشعرات حرارة، لكن قراءة الطاقة والرسوميات لكل عملية وSMART غير منفذة. يعرض `/sys/class/power_supply` مدخلة `AC` وحدها، ولا يكفي ذلك لإثبات غياب البطارية ماديًا. **حُسم الاختلاف باستعمال SMBIOS في ملحق FT-002A: شريحتان × 4 GB من DDR3 بسرعة 1067 MT/s، وليستا شريحتين × 8 GB.** تأكد عبر `/etc/os-release` أن النظام Ubuntu 24.04.5 LTS، وأن بطاقة Intel `8086:0046` تعمل بالتعريف `i915`. ما يزال `system.distribution` في `doctor` يستخدم `platform.platform()` ويحتاج تصحيحًا. [تفاصيل الاختبار](docs/FIELD_TEST_002.md).
 
 ## التطوير
 
