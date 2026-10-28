@@ -86,6 +86,11 @@ Opt-in SMBIOS inventory requires explicit privilege: `sudo .venv/bin/sim doctor 
 
 **Not yet delivered:** a proven `systemd --user` recorder, SQLite, compression/rotation, Desktop GTK or long-running field validation. See [FT-003 protocol](docs/FT003_PROTOCOL.md) and [Alpha 2 implementation status](docs/IMPLEMENTATION_A2.md).
 
+
+## FT-003: نتيجة الاختبار الميداني للنسخة a2
+
+استمر تسجيل فعلي لمدة نحو 38 دقيقة و52 ثانية ونتج عنه **1137** عينة JSONL صالحة؛ بلغ معدل التصدير **15.87 MB/ساعة** مقابل **69.00 MB/ساعة** في FT-001، بانخفاض **77%**. نجح تسجيل الحرارة في جميع العينات (أقصى Core 0 بلغ 68°C)، لكن ظهرت **14 فجوة زمنية تجاوزت 3 ثوانٍ**، وأطولها 23.902 ثانية. لذلك **اعتماد التسجيل والتصدير وظيفيًا مشروط، ولا تزال معالجة الانتظام مطلوبة**، ولا يوجد إصدار Stable. [التقرير النهائي FT-003](docs/FT003_FINAL.md) · [الملخص الآلي JSON](docs/FT003_METRICS.json).
+
 ## التطوير
 
 ```bash

@@ -1,6 +1,6 @@
 # FT-003 — Ubuntu 24.04.5 Alpha-2 field trial
 
-**Status: executed and stopped on 28/10/2026; complete validation pending the correct JSONL export.** Test system: Intel Core i3 M370 (2 physical / 4 logical), 2×4 GB DDR3 RAM, Intel `8086:0046` GPU driver `i915`. Keep existing FT-001 and FT-002 data intact.
+**Status: executed; 1,137 matching JSONL records verified.** Functional PASS with a sampling-interval defect: 14 gaps >3s, maximum 23.902s. [FT-003 final report](FT003_FINAL.md). Test system: Intel Core i3 M370 (2 physical / 4 logical), 2×4 GB DDR3 RAM, Intel `8086:0046` GPU driver `i915`. Keep existing FT-001 and FT-002 data intact.
 
 ## Steps
 
@@ -42,3 +42,8 @@ head -n 1 ~/sim-ft003-20261028.jsonl | .venv/bin/python -c 'import json,sys; pri
 ```
 
 Expected session ID is `20261028T204716Z-9381b675`; the expected sample count is **1,137**, barring export anomalies that require investigation. The result must be shared privately, not committed as a public process log.
+
+
+## Final validation — 28/10/2026
+
+The correct file `sim-ft003-20261028.jsonl` was received and all **1,137** records match `20261028T204716Z-9381b675`. Export size **10,282,740 bytes**; actual data rate **15.871 MB/hour**, versus **69.004 MB/hour** in FT-001, a **77.00% reduction**. All samples have four temperature readings; recorded Core 0 maximum **68°C**, Core 2 maximum **65°C**. The most severe sample interval was **23.902 seconds**, with 14 intervals over 3 seconds. This prevents an unconditional timing PASS. The earlier wrong-file warning is now historical and resolved. Refer to [FT003_FINAL.md](FT003_FINAL.md) and [FT003_METRICS.json](FT003_METRICS.json) for authoritative results; do not rerun the export unnecessarily.
