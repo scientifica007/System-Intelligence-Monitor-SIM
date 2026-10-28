@@ -1,64 +1,75 @@
-# System Intelligence Monitor (SIM)
-## راصد ذكاء النظام — مراقبة وتحليل أداء Linux
+# System Intelligence Monitor — SIM
 
-**SIM** مشروع حر ومفتوح المصدر لبناء منظومة محلية تجمع بيانات أداء الحاسوب، وتوثّقها في سجلات قابلة للقراءة الآلية، وتحوّلها إلى تحليلات وتوصيات قابلة للتحقق.
+**SIM** مشروع مفتوح المصدر لمراقبة أداء حواسيب Linux وتسجيله وتحليله. الهدف بناء أداة عامة، مع أول اختبارات ميدانية مخططة على Ubuntu 24.04 LTS.
 
-> **الحالة الحالية (28/10/2026): مرحلة تأسيس المواصفات والتخطيط فقط.** لا توجد بعد نسخة قابلة للتثبيت أو تشغيل أوامر `sim`. جميع الأمثلة الواردة أدناه تمثل واجهة مستهدفة وليست وظائف منفذة.
+**الوضع (28/10/2026):** نسخة طرفية تجريبية **v0.1.0a1** (ألفا، غير مختبرة بعد على حاسوب المستخدم). نجحت اختبارات أولية في بيئة Linux معزولة؛ ليس لدينا حتى الآن حزمة .deb أو واجهة سطح مكتب. [تفاصيل التنفيذ وحدوده](docs/IMPLEMENTATION_STATUS.md).
 
-**المستودع:** https://github.com/scientifica007/System-Intelligence-Monitor-SIM  
-**الترخيص:** MIT — راجع [LICENSE](LICENSE).  
-**المنصة الأولى:** Ubuntu 24.04 LTS، بما فيها جلسات GNOME/Wayland. ثم توزيعات Linux الأخرى بالتدرج.  
-**النموذج:** يعمل محليًا افتراضيًا، من دون حساب سحابي أو إرسال آلي للقياسات.
+## تثبيت النسخة التجريبية على Ubuntu 24.04
 
-### لماذا SIM؟
-أدوات مثل System Monitor تتيح مراقبة اللحظة؛ نريد أن نحتفظ بدليل زمني لما حدث قبل البطء أو الانهيار، ونميّز الحقائق المقاسة عن الاستنتاجات والتقديرات. يتيح SIM مقارنة الجلسات والإعدادات والتطبيقات لاختيار حلول تناسب الاستخدام الحقيقي.
+لا تثبّت المشروع بصلاحية root. يُنصح ببيئة افتراضية Python:
 
-### منتجان بقاعدة قياس مشتركة
-1. **SIM CLI + Recorder:** طرفية لتشغيل التسجيل بالخلفية، إيقافه، الاستعلام عن الحالة والموارد والعمليات، وفحص الجلسات وتصدير JSON/JSONL؛ التحكم بالأوامر الصريحة دون إبقاء نافذة مفتوحة.
-2. **SIM Desktop:** تطبيق GTK4/Libadwaita يبدأ على Ubuntu، بواجهة رسوم زمنية، وترتيب التطبيقات، وإدارة التسجيلات والتقارير والتوصيات. يستخدم خدمة التجميع وقاعدة البيانات نفسها التي تستخدمها الطرفية؛ لا يعيد اختراع المقاييس.
+```bash
+sudo apt update
+sudo apt install python3-venv python3-pip git
+# Clone into a directory of your choice:
+git clone https://github.com/scientifica007/System-Intelligence-Monitor-SIM.git
+cd System-Intelligence-Monitor-SIM
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e .
+sim doctor --json
+```
 
-### مبادئ ملزمة
-- **القياس قبل التشخيص:** لا توصية دون دليل ومصدر ودرجة ثقة وحدود القياس.
-- **عدم اختلاق البيانات:** `null` مع سبب عند غياب GPU أو الطاقة أو مستشعر معين؛ لا تُعرض الصفر بدل «غير متاح».
-- **المراقبة منخفضة الكلفة:** معايرة استهلاك SIM نفسه على الأجهزة القديمة؛ التردد قابل للضبط.
-- **خصوصية افتراضية:** التخزين المحلي، صلاحيات ملفات مقيدة، تسجيل أسماء/مسارات العمليات الحساسة بالحد الأدنى، وخيارات تنقيح قبل مشاركة السجلات.
-- **أوامر واضحة:** التشغيل والإيقاف بأمر؛ لا تسجيل خفي ولا رفع تلقائي للبيانات.
-- **قابلية التوسع:** دعم قدرات Linux وفق الاكتشاف؛ لا نفترض أن كل GPU أو مستشعر يدعم كل مؤشر.
+تحتاج هذه الطريقة إلى الإنترنت أثناء تثبيت الاعتمادات. بعد ذلك، **المراقبة والتسجيل محليان**. يمكن استعمال `./.venv/bin/sim` من أي طرفية حتى دون تفعيل البيئة.
 
-### أوامر مستهدفة — غير قابلة للتنفيذ بعد
+## نسخة الطرفية (أوامر منفذة)
+
 ```bash
 sim doctor --json
-sim start --interval 2 --label "Brave baseline"
-sim status
-sim show cpu
+sim start --label "Brave baseline" --interval 2
+sim status --json
+sim show cpu --json
+sim show ram --json
+sim show disk --json
+sim show network --json
+sim show gpu --json
 sim top --sort cpu --limit 15
-sim live --refresh 2
+sim top --sort ram --limit 10
+sim live --refresh 2       # Ctrl+C closes only the view
 sim stop
-sim sessions list
-sim export SESSION_ID --format jsonl --output ./session.jsonl
-sim analyze SESSION_ID --json
+sim sessions list --json
+sim sessions show SESSION_ID --json
+sim export SESSION_ID --format jsonl --output ./sim-session.jsonl
+sim export SESSION_ID --format json --output ./sim-session.json
 ```
-توثق [مواصفة الطرفية](docs/CLI_SPEC.md) سلوك هذه الأوامر ورسائل الخطأ.
 
-### خريطة الوثائق
-| الوثيقة | المحتوى |
-|---|---|
-| [ميثاق المشروع](docs/PROJECT_CHARTER.md) | الهوية والرؤية والأهداف والنطاق |
-| [المتطلبات](docs/REQUIREMENTS.md) | الوظائف والقيود ومعايير القبول |
-| [معمارية النظام](docs/ARCHITECTURE.md) | التقسيم الداخلي ومصادر القياس |
-| [واجهة الطرفية](docs/CLI_SPEC.md) | الأوامر ومبدأ العمل في الخلفية |
-| [عقد البيانات](docs/DATA_CONTRACT.md) | الملفات والحقول والجودة والخصوصية |
-| [خارطة الطريق](docs/ROADMAP.md) | مراحل الإنجاز وبوابات الاعتماد |
-| [خطة الاختبار الميداني](docs/FIELD_TEST_PLAN.md) | اختبار Ubuntu 24.04 على جهاز المؤسس |
-| [القرارات](docs/DECISIONS.md) | القرارات المثبتة والأسئلة المفتوحة |
-| [المساهمة](CONTRIBUTING.md) | طريقة الإسهام |
-| [الأمان](SECURITY.md) | حدود الصلاحيات والإبلاغ عن الثغرات |
+تعمل خدمة التسجيل في **عملية منفصلة** عن نافذة الطرفية، ويمكن إغلاق النافذة والاستمرار في العمل داخل جلسة تسجيل الدخول الحالية. لا نضمن الاستمرار بعد تسجيل الخروج أو إعادة التشغيل. هذه النسخة تستخدم Python subprocess مع جلسة عمليات مستقلة، **وليس systemd --user بعد**. الإيقاف بأمر `sim stop` يرسل SIGTERM إلى العملية المطابقة لهوية PID وزمن إنشائها، وينتظر إغلاق الملفات. لا يحتفظ النظام بالعمليات الخفية بعد تثبيت البرنامج؛ يبدأ التسجيل فقط بأمرك.
 
-### الحالة والتطوير
-- [x] توثيق هوية المشروع وأهدافه ومخططه الأولي.
-- [ ] بناء النواة ونسخة طرفية قابلة للاختبار.
-- [ ] إجراء اختبار ميداني أولي على Ubuntu 24.04.
-- [ ] بناء نسخة سطح المكتب.
-- [ ] توسيع دعم التوزيعات والأجهزة تدريجيًا.
+### ملاحظات أساسية
 
-**English:** SIM is an open-source, offline-first Linux performance monitoring, recording and analysis project. It plans a command-line background recorder and a GTK desktop front end backed by one shared measurement engine. The repository currently contains planning documents, not a working release.
+- **لا توجد بعد قياسات فعلية لاستهلاك GPU أو الواط لكل تطبيق.** تظهر حقولها `null` مع سبب عدم الدعم. يقوم `doctor` بجرد أجهزة DRM المقروءة والمستشعرات المتاحة.
+- يتم حساب CPU لكل عملية كنسبة من نواة واحدة، وقد تتجاوز 100% للعملية متعددة الخيوط. يبين حقل `cpu_percent_machine` نسبتها من إجمالي الأنوية المنطقية.
+- الذاكرة `rss_bytes` ليست مجموعًا دقيقًا لكل التطبيقات بسبب مشاركة الذاكرة.
+- `top` يبحث في العمليات المخزنة في آخر عينة، ويقتصر حاليًا على أكبر عدد محدد بالذاكرة عبر `--process-limit` (الافتراضي 300). قد يغيب مستهلك CPU بذاكرة صغيرة إذا تجاوز عدد العمليات الحد.
+- أول عينة لا تتضمن معدل CPU أو القرص أو الشبكة لأن قياس المعدل يتطلب عينتين على الأقل. `null` لا تعني صفرًا.
+- **لا توجد بعد حدود لحجم التخزين أو سياسة تدوير/احتفاظ آلية.** أوقف التسجيل بعد التجربة وراقب المساحة المتاحة، خاصة قبل تسجيلات طويلة.
+- يستخدم SIM أسماء العمليات وPID وRSS وCPU دون تسجيل أوامر التشغيل أو عناوين المواقع أو محتوى الشاشة.
+- بيانات الجلسات محفوظة محليًا في `$XDG_DATA_HOME/sim/sessions/` (أو `~/.local/share/sim/sessions/`)، وحالة المسجل في `$XDG_STATE_HOME/sim/` (أو `~/.local/state/sim/`).
+- تصدير `jsonl` أو `json` لا يمحو الجلسة الأصلية ولا يستبدل ملفًا موجودًا. راجع البيانات قبل مشاركتها.
+
+## التطوير
+
+```bash
+python -m pip install -e . pytest
+python -m pytest -q
+```
+
+## وثائق المشروع
+
+[الميثاق](docs/PROJECT_CHARTER.md) · [المتطلبات](docs/REQUIREMENTS.md) · [المعمارية](docs/ARCHITECTURE.md) · [عقد البيانات](docs/DATA_CONTRACT.md) · [مواصفة الطرفية](docs/CLI_SPEC.md) · [خارطة الطريق](docs/ROADMAP.md) · [خطة الاختبار الميداني](docs/FIELD_TEST_PLAN.md) · [التنفيذ الراهن](docs/IMPLEMENTATION_STATUS.md) · [القرارات](docs/DECISIONS.md).
+
+**الترخيص:** [MIT](LICENSE). المساهمة مرحب بها في إطار [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+**English summary:** SIM is an offline-first open-source Linux performance monitor and recorder. The current alpha has a CLI, an opt-in detached recorder, JSON/JSONL sessions, CPU/RAM/process/disk/network samples, and capability detection. A GTK desktop, deeper metrics, systemd integration, analysis and wider distro support are planned, not released.
