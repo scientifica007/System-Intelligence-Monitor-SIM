@@ -41,6 +41,7 @@ sim live --refresh 2       # Ctrl+C closes only the view
 sim stop
 sim sessions list --json
 sim sessions show SESSION_ID --json
+sim summary SESSION_ID --json
 sim export SESSION_ID --format jsonl --output ./sim-session.jsonl
 sim export SESSION_ID --format json --output ./sim-session.json
 ```
@@ -90,6 +91,11 @@ Opt-in SMBIOS inventory requires explicit privilege: `sudo .venv/bin/sim doctor 
 ## FT-003: نتيجة الاختبار الميداني للنسخة a2
 
 استمر تسجيل فعلي لمدة نحو 38 دقيقة و52 ثانية ونتج عنه **1137** عينة JSONL صالحة؛ بلغ معدل التصدير **15.87 MB/ساعة** مقابل **69.00 MB/ساعة** في FT-001، بانخفاض **77%**. نجح تسجيل الحرارة في جميع العينات (أقصى Core 0 بلغ 68°C)، لكن ظهرت **14 فجوة زمنية تجاوزت 3 ثوانٍ**، وأطولها 23.902 ثانية. لذلك **اعتماد التسجيل والتصدير وظيفيًا مشروط، ولا تزال معالجة الانتظام مطلوبة**، ولا يوجد إصدار Stable. [التقرير النهائي FT-003](docs/FT003_FINAL.md) · [الملخص الآلي JSON](docs/FT003_METRICS.json).
+
+## الإصدار v0.1.0a3 — تشخيص فجوات التسجيل والتلخيص
+بُنيت أدوات قياس مدة دورة المراقبة والتأخر عن موعد الجدولة، وأحداث `sampling_delay` و`schedule_overrun`، مع استعمال مواعيد monotonic مطلقة لتجنب كتابة عينات تعويضية مزيفة. تمت إضافة `sim summary SESSION_ID --json` لتلخيص جلسة محلية، بما فيها FT-001 وFT-003، دون تشغيل التسجيل مجددًا.
+
+**هذا الإصدار لا يضمن زوال الفجوة المكتشفة في FT-003**؛ الهدف الأول قياس سببها وتحديد موضع التأخر ثم اختبارها في FT-004. [بروتوكول FT-004](docs/FT004_PROTOCOL.md) · [تقرير تنفيذ a3](docs/IMPLEMENTATION_A3.md).
 
 ## التطوير
 

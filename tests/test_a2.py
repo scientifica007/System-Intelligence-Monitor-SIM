@@ -12,7 +12,7 @@ from sim.storage import new_session, state_file, read_latest_sample
 
 
 def test_version_and_distro(monkeypatch):
-    assert __version__ == "0.1.0a2"
+    assert __version__ == "0.1.0a3"
     monkeypatch.setattr(collect.platform, "freedesktop_os_release",
                         lambda: {"PRETTY_NAME": "Ubuntu 24.04.5 LTS", "VERSION_ID": "24.04", "ID": "ubuntu"})
     d = doctor()

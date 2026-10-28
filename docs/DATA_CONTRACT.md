@@ -75,3 +75,14 @@
 
 ## 6. مسؤولية الاستنتاج
 التقرير يتضمن `observations` (نتائج محسوبة من العينات) و`hypotheses` (تفسيرات محتملة) و`recommendations` (إجراءات مع دليل ومخاطر وثقة). لا يسمح لعناوين «سبب أكيد» إذا كانت الأدلة ارتباطية فقط.
+
+## v0.1.0a3: optional fields and instrumentation
+Sample records preserve `schema_version=1.0.0` and all existing fields, and may additionally contain:
+```json
+"timing": {
+  "collector_duration_ms": 12.4,
+  "sampling_lateness_ms": 0.5,
+  "previous_write_duration_ms": 1.0
+}
+```
+`previous_write_duration_ms` is for the preceding record, `null` for the first record. Historic a1/a2 records have no `timing` key; summary statistics treat them as unavailable. Events `sampling_delay` and `schedule_overrun` live in `events.jsonl` and never imply missing samples were generated. At shutdown `manifest.json` can have `sampling_delay_events` and `skipped_schedule_deadlines`. `summary` computes interval gaps from monotonic timestamps where present; fallback UTC is less suitable if the wall clock changes. These additions are backward compatible under the project's optional-field rule.

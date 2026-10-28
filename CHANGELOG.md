@@ -1,3 +1,12 @@
+## v0.1.0a3 — 28/10/2026
+- Add absolute monotonic deadlines and skip expired scheduler slots without fabricating samples.
+- Instrument collector duration, scheduling lateness, and previous-record write time per sample.
+- Emit `sampling_delay` (gap greater than max(3s, 1.5×interval)) and `schedule_overrun` events.
+- Add `sim summary SESSION_ID --json` for streaming CPU/RAM/temperature/timing and file-rate summaries, including a1/a2 sessions.
+- Preserve the previous CLI, JSONL schema version, and original session files.
+- Add regression tests and FT-004 field protocol.
+- Still alpha: the FT-003 gap root cause is not established; no systemd user service, rotation or GPU/power per-app metrics yet.
+
 # Changelog — SIM
 
 ## 0.1.0a2 — 28/10/2026 (Alpha)

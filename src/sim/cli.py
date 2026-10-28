@@ -14,6 +14,7 @@ import psutil
 from . import __version__
 from .collect import Collector, doctor
 from .paths import private_dir, read_json, write_json
+from .summary import summarize
 from .storage import (control_lock, current_state, list_sessions, new_session,
                       process_alive, read_latest_sample, session_path, state_dir,
                       state_file, stream_samples)
@@ -176,6 +177,22 @@ def export(args):
     output({"output": str(dest), "format": args.format}, args.json)
 
 
+def summary_command(args):
+    result = summarize(args.session_id)
+    if args.json:
+        output(result, True)
+    else:
+        print(f"Session: {result['session_id']} ({result['session_state']})")
+        print(f"Samples: {result['sample_count']} | Details: {result['process_detail_samples']}")
+        print(f"Duration: {result['duration_seconds']} s | Stored: {result['sample_file_bytes']} bytes")
+        print(f"Data rate: {result['observed_mb_per_hour']} MB/hour")
+        print(f"Gaps >{result['gap_threshold_seconds']}s: {result['gaps_over_threshold']} | max: {result['max_gap_seconds']}s")
+        print(f"CPU mean/max: {result['system_cpu_percent']['mean']}/{result['system_cpu_percent']['max']}%")
+        print(f"Max collection: {result['collector_duration_ms']['max']} ms | Max lateness: {result['sampling_lateness_ms']['max']} ms")
+        for name, metric in result['temperature_celsius'].items():
+            print(f"Temperature {name}: mean {metric['mean']}C / max {metric['max']}C")
+
+
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="sim", description="Linux performance monitoring and background recording")
     p.add_argument("--version", action="version", version=f"SIM {__version__}")
@@ -207,6 +224,9 @@ def parser() -> argparse.ArgumentParser:
     detail = sss.add_parser("show")
     detail.add_argument("session_id")
     detail.add_argument("--json", action="store_true")
+    sm = sub.add_parser("summary", help="Stream statistics from an existing session (no recorder needed)")
+    sm.add_argument("session_id")
+    sm.add_argument("--json", action="store_true")
     ex = sub.add_parser("export", help="Export a recorded session")
     ex.add_argument("session_id")
     ex.add_argument("--format", choices=["jsonl", "json"], default="jsonl")
@@ -239,6 +259,8 @@ def main(argv=None) -> int:
                 output(list_sessions(), args.json)
             else:
                 output(read_json(session_path(args.session_id) / "manifest.json"), args.json)
+        elif args.command == "summary":
+            summary_command(args)
         elif args.command == "export":
             export(args)
         return 0
