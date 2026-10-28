@@ -2,7 +2,7 @@
 
 **SIM** مشروع مفتوح المصدر لمراقبة أداء حواسيب Linux وتسجيله وتحليله. الهدف بناء أداة عامة، مع أول اختبارات ميدانية مخططة على Ubuntu 24.04 LTS.
 
-**الوضع (28/10/2026):** نسخة طرفية تجريبية **v0.1.0a1** (ألفا، غير مختبرة بعد على حاسوب المستخدم). نجحت اختبارات أولية في بيئة Linux معزولة؛ ليس لدينا حتى الآن حزمة .deb أو واجهة سطح مكتب. [تفاصيل التنفيذ وحدوده](docs/IMPLEMENTATION_STATUS.md).
+**الوضع (28/10/2026):** نسخة طرفية تجريبية **v0.1.0a1**؛ اجتازت الاختبارات الآلية وأول اختبار تسجيل ميداني على Ubuntu 24.04 (129 عينة خلال 4 دقائق و16 ثانية). لم تُعتمد بعد لجلسات طويلة أو قياس GPU والطاقة؛ ليست هناك حزمة .deb أو واجهة سطح مكتب. [نتيجة الاختبار الميداني الأول](docs/FIELD_TEST_001.md) · [تفاصيل التنفيذ وحدوده](docs/IMPLEMENTATION_STATUS.md).
 
 ## تثبيت النسخة التجريبية على Ubuntu 24.04
 
@@ -23,6 +23,8 @@ sim doctor --json
 تحتاج هذه الطريقة إلى الإنترنت أثناء تثبيت الاعتمادات. بعد ذلك، **المراقبة والتسجيل محليان**. يمكن استعمال `./.venv/bin/sim` من أي طرفية حتى دون تفعيل البيئة.
 
 ## نسخة الطرفية (أوامر منفذة)
+
+**تنبيه بشأن الأمثلة:** `SESSION_ID` اسم بديل، وليس معرّف جلسة حقيقيًا. استخرج المعرف أولًا من `sim sessions list --json` ثم استبدله بالقيمة التي تظهر (مثل `20261028T194549Z-479a6b04`).
 
 ```bash
 sim doctor --json
@@ -66,7 +68,7 @@ python -m pytest -q
 
 ## وثائق المشروع
 
-[الميثاق](docs/PROJECT_CHARTER.md) · [المتطلبات](docs/REQUIREMENTS.md) · [المعمارية](docs/ARCHITECTURE.md) · [عقد البيانات](docs/DATA_CONTRACT.md) · [مواصفة الطرفية](docs/CLI_SPEC.md) · [خارطة الطريق](docs/ROADMAP.md) · [خطة الاختبار الميداني](docs/FIELD_TEST_PLAN.md) · [التنفيذ الراهن](docs/IMPLEMENTATION_STATUS.md) · [القرارات](docs/DECISIONS.md).
+[الميثاق](docs/PROJECT_CHARTER.md) · [المتطلبات](docs/REQUIREMENTS.md) · [المعمارية](docs/ARCHITECTURE.md) · [عقد البيانات](docs/DATA_CONTRACT.md) · [مواصفة الطرفية](docs/CLI_SPEC.md) · [خارطة الطريق](docs/ROADMAP.md) · [خطة الاختبار الميداني](docs/FIELD_TEST_PLAN.md) · [التنفيذ الراهن](docs/IMPLEMENTATION_STATUS.md) · [الاختبار الميداني 001](docs/FIELD_TEST_001.md) · [القرارات](docs/DECISIONS.md).
 
 **الترخيص:** [MIT](LICENSE). المساهمة مرحب بها في إطار [CONTRIBUTING.md](CONTRIBUTING.md).
 
