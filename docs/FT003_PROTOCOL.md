@@ -1,6 +1,6 @@
 # FT-003 — Ubuntu 24.04.5 Alpha-2 field trial
 
-**Status: not executed.** Test system: Intel Core i3 M370 (2 physical / 4 logical), 2×4 GB DDR3 RAM, Intel `8086:0046` GPU driver `i915`. Keep existing FT-001 and FT-002 data intact.
+**Status: executed and stopped on 28/10/2026; complete validation pending the correct JSONL export.** Test system: Intel Core i3 M370 (2 physical / 4 logical), 2×4 GB DDR3 RAM, Intel `8086:0046` GPU driver `i915`. Keep existing FT-001 and FT-002 data intact.
 
 ## Steps
 
@@ -25,3 +25,20 @@
 
 ## Subsequent test
 After analyzing FT-003, conduct a 2-hour stability test with explicit storage limit and optional `--process-every 1` short-run comparison. Neither test has been completed yet.
+
+
+## Field checkpoint: 28/10/2026
+
+The user completed the 38m53s recording session, obtained 1,137 samples according to `sim stop`, and confirmed `sim show temperatures` and `sim top` during the run. Doctor JSON reports Ubuntu 24.04.5, i915 and accessible sensors. The first attached JSONL was checked independently and **belongs to FT-001** (129 records, earlier session ID), **not FT-003**. The program is not known to have exported an incorrect session; the wrong attachment was provided. See [FT-003 preliminary report](FT003_PRELIMINARY.md).
+
+To export the correct session without overwriting a prior file:
+
+```bash
+cd ~/System-Intelligence-Monitor-SIM
+.venv/bin/sim export 20261028T204716Z-9381b675 --format jsonl --output ~/sim-ft003-20261028.jsonl
+wc -l ~/sim-ft003-20261028.jsonl
+du -h ~/sim-ft003-20261028.jsonl
+head -n 1 ~/sim-ft003-20261028.jsonl | .venv/bin/python -c 'import json,sys; print(json.load(sys.stdin)["session_id"])'
+```
+
+Expected session ID is `20261028T204716Z-9381b675`; the expected sample count is **1,137**, barring export anomalies that require investigation. The result must be shared privately, not committed as a public process log.
