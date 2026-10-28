@@ -1,0 +1,74 @@
+{
+  "report_id": "FT-003",
+  "date": "28/10/2026",
+  "sim_version": "v0.1.0a2",
+  "verdict": "functional_pass_timing_defect",
+  "session_id": "20261028T204716Z-9381b675",
+  "sample_count": 1137,
+  "jsonl_valid": true,
+  "all_session_ids_match": true,
+  "duration_seconds": 2332.4,
+  "size_bytes": 10282740,
+  "size_mb_per_hour": 15.8711473161,
+  "process_detail_samples": 230,
+  "lightweight_samples": 907,
+  "interval": {
+    "mean_seconds": 2.0531690141,
+    "median_seconds": 2.001,
+    "min_seconds": 1.83,
+    "max_seconds": 23.902,
+    "count_over_2_5_seconds": 19,
+    "count_over_3_seconds": 14
+  },
+  "cpu": {
+    "mean_pct_total": 10.5628521127,
+    "max_pct_total": 98.62,
+    "samples_ge75_pct": 3
+  },
+  "ram": {
+    "mean_gib_used": 3.0766616392,
+    "max_gib_used": 3.7307090759,
+    "swap_min_bytes": 327680,
+    "swap_max_bytes": 638976
+  },
+  "recorder": {
+    "pid": 9144,
+    "mean_machine_cpu_percent": 0.2935371179,
+    "mean_rss_mib": 20.1915
+  },
+  "temperatures_celsius": {
+    "acpitz_0": {
+      "mean": 48.78,
+      "min": 41,
+      "max": 64,
+      "p95": 54
+    },
+    "acpitz_1": {
+      "mean": 55.68,
+      "min": 48,
+      "max": 61,
+      "p95": 60
+    },
+    "coretemp_core0": {
+      "mean": 49.57,
+      "min": 39,
+      "max": 68,
+      "p95": 56
+    },
+    "coretemp_core2": {
+      "mean": 49.04,
+      "min": 39,
+      "max": 65,
+      "p95": 55
+    }
+  },
+  "comparison_ft001": {
+    "size_bytes": 4907245,
+    "sample_count": 129,
+    "duration_seconds": 256.015,
+    "size_mb_per_hour": 69.0040896041,
+    "recorder_mean_machine_cpu_percent": 0.806484375,
+    "storage_rate_reduction_percent": 76.9997004422
+  },
+  "caveat": "Different workloads; CPU and recorder load differences cannot be treated as causal improvement; raw JSONL withheld from public repo"
+}
