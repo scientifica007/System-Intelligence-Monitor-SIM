@@ -59,6 +59,12 @@ sim export SESSION_ID --format json --output ./sim-session.json
 - بيانات الجلسات محفوظة محليًا في `$XDG_DATA_HOME/sim/sessions/` (أو `~/.local/share/sim/sessions/`)، وحالة المسجل في `$XDG_STATE_HOME/sim/` (أو `~/.local/state/sim/`).
 - تصدير `jsonl` أو `json` لا يمحو الجلسة الأصلية ولا يستبدل ملفًا موجودًا. راجع البيانات قبل مشاركتها.
 
+
+
+## آخر فحص عتاد ميداني — FT-002 (28/10/2026)
+
+أُجري `sim doctor --json` على حاسوب الاختبار الحقيقي وجرى تقاطعه مع `free -h` و`lscpu`: Intel Core i3 M370 (نواتان ماديتان، 4 منطقية)، Linux kernel 7.0.0-38-generic، ذاكرة متاحة للنظام 8,110,960,640 بايت (7.554 GiB)، وGPU Intel PCI `8086:0046`. أُكد توفر CPU/RAM/Swap/processes/disk/network وجرد GPU ومستشعرات حرارة، لكن قراءة الطاقة والرسوميات لكل عملية وSMART غير منفذة. كشف البطارية غير متاح في بيئة الاختبار. **لم يُحسم اختلاف RAM المرئية (~8 GB) عن وصف سابق لـ16 GB مثبتة** ويحتاج فحص وحدات SMBIOS. كما أن `system.distribution` في `doctor` يستخدم `platform.platform()`، فلا يُعد كشفًا صريحًا لتوزيعة Ubuntu. [تفاصيل الاختبار](docs/FIELD_TEST_002.md).
+
 ## التطوير
 
 ```bash
@@ -68,7 +74,7 @@ python -m pytest -q
 
 ## وثائق المشروع
 
-[الميثاق](docs/PROJECT_CHARTER.md) · [المتطلبات](docs/REQUIREMENTS.md) · [المعمارية](docs/ARCHITECTURE.md) · [عقد البيانات](docs/DATA_CONTRACT.md) · [مواصفة الطرفية](docs/CLI_SPEC.md) · [خارطة الطريق](docs/ROADMAP.md) · [خطة الاختبار الميداني](docs/FIELD_TEST_PLAN.md) · [التنفيذ الراهن](docs/IMPLEMENTATION_STATUS.md) · [الاختبار الميداني 001](docs/FIELD_TEST_001.md) · [القرارات](docs/DECISIONS.md).
+[الميثاق](docs/PROJECT_CHARTER.md) · [المتطلبات](docs/REQUIREMENTS.md) · [المعمارية](docs/ARCHITECTURE.md) · [عقد البيانات](docs/DATA_CONTRACT.md) · [مواصفة الطرفية](docs/CLI_SPEC.md) · [خارطة الطريق](docs/ROADMAP.md) · [خطة الاختبار الميداني](docs/FIELD_TEST_PLAN.md) · [التنفيذ الراهن](docs/IMPLEMENTATION_STATUS.md) · [الاختبار الميداني 001](docs/FIELD_TEST_001.md) · [فحص العتاد 002](docs/FIELD_TEST_002.md) · [القرارات](docs/DECISIONS.md).
 
 **الترخيص:** [MIT](LICENSE). المساهمة مرحب بها في إطار [CONTRIBUTING.md](CONTRIBUTING.md).
 
