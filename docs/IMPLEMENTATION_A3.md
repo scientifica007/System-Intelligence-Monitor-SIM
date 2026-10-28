@@ -1,6 +1,6 @@
 # SIM v0.1.0a3 — Execution and verification
 
-**Date:** 28/10/2026. **Status:** Implemented candidate, locally tested, pending GitHub CI and FT-004 on the target HP device.
+**Date:** 28/10/2026. **Status:** Implemented Alpha 3 candidate. GitHub Actions PASS: **17 tests on Python 3.12 and 17 tests on Python 3.13** under Ubuntu 24.04. FT-004 on the user's physical machine remains pending. [CI run](../actions/runs/40775155352).
 
 ## Changed code
 - `src/sim/recorder.py`: absolute monotonic scheduling; skips stale slots rather than generating catch-up samples. Records per-sample `timing` and emits `sampling_delay` / `schedule_overrun` events. Writes delay-event and skipped-deadline totals to manifest when recorder finishes. The 128 MiB size guard and user-controlled stop are unchanged.
