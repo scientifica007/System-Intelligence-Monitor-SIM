@@ -11,7 +11,8 @@ from .paths import read_json, write_json
 from .storage import append_jsonl, session_path, state_file
 
 
-def record(session_id: str, token: str, interval: float, limit: int) -> int:
+def record(session_id: str, token: str, interval: float, limit: int,
+           process_every: int = 1, max_session_mib: int = 128) -> int:
     path = session_path(session_id)
     manifest_path = path / "manifest.json"
     stop_event = threading.Event()
@@ -40,20 +41,30 @@ def record(session_id: str, token: str, interval: float, limit: int) -> int:
         write_json(manifest_path, manifest)
         write_json(path / "capabilities.json", doctor())
         collector = Collector()
+        size_limit_bytes = max_session_mib * 1024 * 1024
+        detail_next = False
         # The first sample deliberately has unknown rates; no fake 0% CPU.
         with os.fdopen(os.open(path / "samples.jsonl", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w", encoding="utf-8") as samples, \
              os.fdopen(os.open(path / "events.jsonl", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w", encoding="utf-8") as events:
             append_jsonl(events, {"event": "recording_started", "timestamp_utc": now_utc()})
             while not stop_event.is_set():
                 start = time.monotonic()
-                item = collector.sample(process_limit=limit)
+                include_processes = count == 0 or count % process_every == 0 or detail_next
+                item = collector.sample(process_limit=limit, include_processes=include_processes)
                 item["session_id"] = session_id
+                cpu = item["system"]["cpu_percent_total"]
+                detail_next = cpu is not None and cpu >= 75.0
                 append_jsonl(samples, item)
                 count += 1
+                if samples.tell() >= size_limit_bytes:
+                    reason = "size_limit"
+                    append_jsonl(events, {"event": "session_size_limit", "timestamp_utc": now_utc(),
+                                          "limit_mib": max_session_mib})
+                    break
                 if count % 10 == 0:
                     os.fsync(samples.fileno())
                 stop_event.wait(max(0.0, interval - (time.monotonic() - start)))
-            append_jsonl(events, {"event": "recording_stopped", "timestamp_utc": now_utc()})
+            append_jsonl(events, {"event": "recording_stopped", "timestamp_utc": now_utc(), "reason": reason})
             os.fsync(samples.fileno())
         return 0
     except Exception as exc:
@@ -76,8 +87,11 @@ def main() -> int:
     parser.add_argument("--token", required=True)
     parser.add_argument("--interval", type=float, required=True)
     parser.add_argument("--limit", type=int, required=True)
+    parser.add_argument("--process-every", type=int, default=1)
+    parser.add_argument("--max-session-mib", type=int, default=128)
     args = parser.parse_args()
-    return record(args.session_id, args.token, args.interval, args.limit)
+    return record(args.session_id, args.token, args.interval, args.limit,
+                  args.process_every, args.max_session_mib)
 
 
 if __name__ == "__main__":

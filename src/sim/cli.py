@@ -33,19 +33,26 @@ def start(args) -> int:
         raise ValueError("--interval must be between 0.5 and 3600 seconds")
     if not 1 <= args.process_limit <= 5000:
         raise ValueError("--process-limit must be between 1 and 5000")
+    if not 1 <= args.process_every <= 3600:
+        raise ValueError("--process-every must be between 1 and 3600")
+    if not 1 <= args.max_session_mib <= 100000:
+        raise ValueError("--max-session-mib must be between 1 and 100000")
     if len(args.label) > 120:
         raise ValueError("Label must be 120 characters or shorter")
     with control_lock():
         state = current_state()
         if state["recording"]:
             raise ValueError(f"Recorder already running: {state['session_id']}")
-        session_id, path = new_session(args.label, args.interval, args.process_limit)
+        session_id, path = new_session(args.label, args.interval, args.process_limit,
+                                       args.process_every, args.max_session_mib)
         token = secrets.token_hex(16)
         logfile = private_dir(state_dir()) / "recorder.stderr.log"
         with os.fdopen(os.open(logfile, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600), "ab") as log:
             proc = subprocess.Popen([sys.executable, "-m", "sim.recorder",
                                      "--session-id", session_id, "--token", token,
-                                     "--interval", str(args.interval), "--limit", str(args.process_limit)],
+                                     "--interval", str(args.interval), "--limit", str(args.process_limit),
+                                     "--process-every", str(args.process_every),
+                                     "--max-session-mib", str(args.max_session_mib)],
                                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=log,
                                     start_new_session=True, close_fds=True)
         try:
@@ -60,7 +67,9 @@ def start(args) -> int:
             manifest = read_json(path / "manifest.json") or {}
             if manifest.get("state") == "recording" and (path / "samples.jsonl").exists():
                 output({"state": "recording", "session_id": session_id, "pid": proc.pid,
-                        "path": str(path), "interval_seconds": args.interval}, args.json)
+                        "path": str(path), "interval_seconds": args.interval,
+                        "process_every": args.process_every,
+                        "max_session_mib": args.max_session_mib}, args.json)
                 return 0
             if proc.poll() is not None:
                 raise RuntimeError(f"Recorder exited during start; inspect {path / 'recorder-error.log'}")
@@ -114,13 +123,19 @@ def show(args):
 
 
 def top(args):
-    item = latest()
+    state = current_state()
+    if not state["recording"]:
+        raise ValueError("No active recorder; start with `sim start` first")
+    item = read_latest_sample(state["session_id"], require_processes=True)
+    if item is None:
+        raise ValueError("Recorder has not written a process snapshot yet")
     key = "rss_bytes" if args.sort == "ram" else "cpu_percent_one_core"
     proc = sorted(item["processes"], key=lambda p: p[key] if p[key] is not None else -1, reverse=True)[:args.limit]
     if args.json:
-        output({"timestamp_utc": item["timestamp_utc"], "sort": args.sort, "processes": proc}, True)
+        output({"timestamp_utc": item["timestamp_utc"], "sort": args.sort, "processes": proc,
+                "snapshot_note": "Last detailed process sample, not necessarily latest system sample"}, True)
     else:
-        print(f"Last sample: {item['timestamp_utc']} | CPU% = one logical CPU (may exceed 100%)")
+        print(f"Last process sample: {item['timestamp_utc']} | CPU% = one logical CPU (may exceed 100%)")
         print(f"{'PID':>7} {'CPU%':>9} {'RSS MiB':>10}  Name")
         for p in proc:
             c = "n/a" if p["cpu_percent_one_core"] is None else f"{p['cpu_percent_one_core']:.1f}"
@@ -167,15 +182,18 @@ def parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True)
     d = sub.add_parser("doctor", help="Probe available system metrics and sensors")
     d.add_argument("--json", action="store_true")
+    d.add_argument("--memory-modules", action="store_true", help="Opt-in SMBIOS inventory; requires root")
     a = sub.add_parser("start", help="Start background recorder")
     a.add_argument("--interval", type=float, default=2.0)
     a.add_argument("--process-limit", type=int, default=300)
+    a.add_argument("--process-every", type=int, default=5, help="Detailed process sample every N system samples")
+    a.add_argument("--max-session-mib", type=int, default=128, help="Stop near this size limit in MiB")
     a.add_argument("--label", default="")
     a.add_argument("--json", action="store_true")
     for name in ("stop", "status"):
         sub.add_parser(name).add_argument("--json", action="store_true")
     sh = sub.add_parser("show", help="View most recent recorded metric")
-    sh.add_argument("resource", choices=["cpu", "ram", "disk", "network", "gpu", "power"])
+    sh.add_argument("resource", choices=["cpu", "ram", "disk", "network", "gpu", "power", "temperatures"])
     sh.add_argument("--json", action="store_true")
     top_p = sub.add_parser("top", help="Highest recorded resource consumers")
     top_p.add_argument("--sort", choices=["cpu", "ram"], default="cpu")
@@ -201,7 +219,7 @@ def main(argv=None) -> int:
     args = parser().parse_args(argv)
     try:
         if args.command == "doctor":
-            output(doctor(), args.json)
+            output(doctor(with_memory_modules=args.memory_modules), args.json)
         elif args.command == "start":
             return start(args)
         elif args.command == "stop":

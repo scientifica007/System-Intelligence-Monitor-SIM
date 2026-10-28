@@ -2,7 +2,7 @@
 
 **SIM** مشروع مفتوح المصدر لمراقبة أداء حواسيب Linux وتسجيله وتحليله. الهدف بناء أداة عامة، مع أول اختبارات ميدانية مخططة على Ubuntu 24.04 LTS.
 
-**الوضع (28/10/2026):** نسخة طرفية تجريبية **v0.1.0a1**؛ اجتازت الاختبارات الآلية وأول اختبار تسجيل ميداني على Ubuntu 24.04 (129 عينة خلال 4 دقائق و16 ثانية). لم تُعتمد بعد لجلسات طويلة أو قياس GPU والطاقة؛ ليست هناك حزمة .deb أو واجهة سطح مكتب. [نتيجة الاختبار الميداني الأول](docs/FIELD_TEST_001.md) · [تفاصيل التنفيذ وحدوده](docs/IMPLEMENTATION_STATUS.md).
+**الوضع (28/10/2026):** نسخة طرفية تجريبية **v0.1.0a2** (FT-003 لم يُنفّذ بعد؛ FT-001 أُجري على a1)؛ اجتازت الاختبارات الآلية وأول اختبار تسجيل ميداني على Ubuntu 24.04 (129 عينة خلال 4 دقائق و16 ثانية). لم تُعتمد بعد لجلسات طويلة أو قياس GPU والطاقة؛ ليست هناك حزمة .deb أو واجهة سطح مكتب. [نتيجة الاختبار الميداني الأول](docs/FIELD_TEST_001.md) · [تفاصيل التنفيذ وحدوده](docs/IMPLEMENTATION_STATUS.md).
 
 ## تثبيت النسخة التجريبية على Ubuntu 24.04
 
@@ -64,6 +64,27 @@ sim export SESSION_ID --format json --output ./sim-session.json
 ## آخر فحص عتاد ميداني — FT-002 (28/10/2026)
 
 أُجري `sim doctor --json` على حاسوب الاختبار الحقيقي وجرى تقاطعه مع `free -h` و`lscpu`: Intel Core i3 M370 (نواتان ماديتان، 4 منطقية)، Linux kernel 7.0.0-38-generic، ذاكرة متاحة للنظام 8,110,960,640 بايت (7.554 GiB)، وGPU Intel PCI `8086:0046`. أُكد توفر CPU/RAM/Swap/processes/disk/network وجرد GPU ومستشعرات حرارة، لكن قراءة الطاقة والرسوميات لكل عملية وSMART غير منفذة. يعرض `/sys/class/power_supply` مدخلة `AC` وحدها، ولا يكفي ذلك لإثبات غياب البطارية ماديًا. **حُسم الاختلاف باستعمال SMBIOS في ملحق FT-002A: شريحتان × 4 GB من DDR3 بسرعة 1067 MT/s، وليستا شريحتين × 8 GB.** تأكد عبر `/etc/os-release` أن النظام Ubuntu 24.04.5 LTS، وأن بطاقة Intel `8086:0046` تعمل بالتعريف `i915`. ما يزال `system.distribution` في `doctor` يستخدم `platform.platform()` ويحتاج تصحيحًا. [تفاصيل الاختبار](docs/FIELD_TEST_002.md).
+
+
+## SIM v0.1.0a2 — improvements (Alpha, FT-003 pending)
+
+The alpha-2 CLI now detects Ubuntu identity through `/etc/os-release`, GPU driver IDs, power supply types and readable temperatures. It keeps background recording user-controlled and local.
+
+```bash
+sim --version
+sim doctor --json
+sim start --interval 2 --process-every 5 --max-session-mib 128 --label "FT-003" --json
+sim show temperatures --json
+sim top --sort cpu --limit 15
+sim stop --json
+sim sessions list --json
+```
+
+The default records system counters every 2 seconds and detailed process data every 5 samples (and on the **next** sample after CPU >=75%). Use `--process-every 1` for more detailed collection, at a larger performance and storage cost. `sim top` now uses the most recent detailed sample, which may be older than the newest system sample. A 128 MiB size safety limit ends a session with manifest state `size_limit` and leaves all data intact (no automatic deletion).
+
+Opt-in SMBIOS inventory requires explicit privilege: `sudo .venv/bin/sim doctor --memory-modules --json`. This does **not** require privileged monitoring. Hardware and capabilities vary; GPU utilization and per-process watts remain unimplemented.
+
+**Not yet delivered:** a proven `systemd --user` recorder, SQLite, compression/rotation, Desktop GTK or long-running field validation. See [FT-003 protocol](docs/FT003_PROTOCOL.md) and [Alpha 2 implementation status](docs/IMPLEMENTATION_A2.md).
 
 ## التطوير
 

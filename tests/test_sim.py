@@ -36,7 +36,7 @@ def test_doctor_json(environment):
     result = json.loads(command("doctor", "--json", env=environment).stdout)
     assert result["system"]["cpu_logical"] >= 1
     assert result["capabilities"]["cpu"]["availability"] == "available"
-    assert result["capabilities"]["gpu_per_process"]["availability"] == "unsupported"
+    assert result["capabilities"]["gpu_per_process"]["availability"] == "not_implemented"
 
 
 def test_first_rates_are_unknown_not_zero():
@@ -45,7 +45,7 @@ def test_first_rates_are_unknown_not_zero():
     assert first["system"]["cpu_percent_total"] is None
     assert first["system"]["disk_read_bytes_per_second"] is None
     assert first["gpu"]["utilization_percent"] is None
-    assert first["gpu"]["availability"] == "unsupported"
+    assert first["gpu"]["availability"] == "not_implemented"
     time.sleep(0.02)
     second = collector.sample(process_limit=5)
     assert second["interval_ms"] > 0

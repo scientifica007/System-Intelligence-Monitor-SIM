@@ -55,14 +55,17 @@ def current_state() -> dict:
             "session_id": state["session_id"], "started_at_utc": state.get("started_at_utc")}
 
 
-def new_session(label: str, interval: float, limit: int) -> tuple[str, Path]:
+def new_session(label: str, interval: float, limit: int, process_every: int = 1,
+                max_session_mib: int = 128) -> tuple[str, Path]:
     private_dir(sessions_dir())
     sid = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + secrets.token_hex(4)
     path = sessions_dir() / sid
     path.mkdir(mode=0o700)
     manifest = {"schema_version": SCHEMA_VERSION, "session_id": sid, "label": label,
                 "started_at_utc": now_utc(), "ended_at_utc": None, "state": "starting",
-                "interval_seconds": interval, "process_limit": limit, "sample_count": 0}
+                "interval_seconds": interval, "process_limit": limit,
+                "process_every": process_every, "max_session_mib": max_session_mib,
+                "sample_count": 0}
     write_json(path / "manifest.json", manifest)
     return sid, path
 
@@ -93,7 +96,7 @@ def append_jsonl(handle, data: dict) -> None:
     handle.flush()
 
 
-def read_latest_sample(session_id: str) -> dict | None:
+def read_latest_sample(session_id: str, *, require_processes: bool = False) -> dict | None:
     path = session_path(session_id) / "samples.jsonl"
     try:
         with path.open("rb") as handle:
@@ -101,14 +104,17 @@ def read_latest_sample(session_id: str) -> dict | None:
             end = handle.tell()
             if not end:
                 return None
-            offset = max(0, end - 4 * 1024 * 1024)
+            offset = max(0, end - 8 * 1024 * 1024)
             handle.seek(offset)
             lines = handle.read().splitlines()
             if offset and lines:
                 lines = lines[1:]
             for line in reversed(lines):
                 try:
-                    return json.loads(line)
+                    item = json.loads(line)
+                    if require_processes and not item.get("processes_sampled", True):
+                        continue
+                    return item
                 except (ValueError, UnicodeError):
                     continue
     except FileNotFoundError:
